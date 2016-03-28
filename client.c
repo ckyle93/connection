@@ -1,3 +1,9 @@
+/* By: Chris Kyle
+ * This program is based off the programming challenge
+ * Challenge #258 [Easy] IRC: Making a Connection
+ * www.reddit.com/r/dailyprogrammer/comments/4ad23z/20160314_challenge_258_easy_irc_making_a/
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -47,10 +53,10 @@ void listen_to_server(int sock) {
         int n = read(sock,buffer,511);
         if (n < 0) 
              error("ERROR reading from socket");
-        char *buffstr = strdup(buffer);
+        char *buffstr;
+        strcpy(buffstr, buffer);
         assert(buffstr != NULL);
         if (strcmp(strsep(&buffstr, " "), "PING") == 0){
-            return;
             char response[128];
             strcpy(response, "PONG ");
             strcat(response, strsep(&buffstr, " "));
@@ -62,37 +68,47 @@ void listen_to_server(int sock) {
     }
 }
 
-int main(int argc, char *argv[])
-{
-    int sockfd, portno, n;
+int main(int argc, char *argv[]) {
+    int sockfd, portno;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
-    char buffer[512];
-
     if (argc != 2) {
-        printf("Usage: read_file <filename>");
+        printf("Usage: client <filename>");
         exit(0);
     }
     FILE *address_file = fopen(argv[1], "r");
     char buff[255];
+
+    // Get address of the form www.example.com:1234
     fgets(buff, 255, address_file);
-    char *str = strdup(buff);
-    assert(str != NULL);
+    char *str;
+    strcpy(str, buff);
     char *web_address = strsep(&str, ":");
     size_t port_number = atoi(strsep(&str, ":"));
-    fgets(buff, 255, address_file);
-    char *nickname = strtok(strdup(buff), "\n");
-    assert(nickname != NULL);
-    fgets(buff, 255, address_file);
-    char *username = strtok(strdup(buff), "\n");
-    assert(username != NULL);
-    fgets(buff, 255, address_file);
-    char *realname = strtok(strdup(buff), "\n");
-    assert(realname != NULL);
-    fclose(address_file);
-    free(str);
 
+    // Get nickname and strip newlines.
+    fgets(buff, 255, address_file);
+    char nickname[64];
+    strtok(buff, "\n");
+    strcpy(nickname, buff);
+
+    // Get username and strip newlines.
+    fgets(buff, 255, address_file);
+    char username[64];
+    strtok(buff, "\n");
+    strcpy(username, buff);
+
+    // Get realname and strip newlines
+    fgets(buff, 255, address_file);
+    char realname[64];
+    strtok(buff, "\n");
+    strcpy(realname, buff);
+    fclose(address_file);
+
+    // Connect to server
+    // This is based off of the C socket tutorial at
+    // http://www.linuxhowtos.org/C_C++/socket.htm
     portno = port_number;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
@@ -112,10 +128,7 @@ int main(int argc, char *argv[])
         error("ERROR connecting");
 
     send_nickname(nickname, sockfd);
-    free(nickname);
     send_username(username, realname, sockfd);
-    free(username);
-    free(realname);
     listen_to_server(sockfd);
     close(sockfd);
     return 0;
