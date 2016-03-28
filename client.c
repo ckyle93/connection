@@ -53,8 +53,7 @@ void listen_to_server(int sock) {
         int n = read(sock,buffer,511);
         if (n < 0) 
              error("ERROR reading from socket");
-        char *buffstr;
-        strcpy(buffstr, buffer);
+        char *buffstr = strdup(buffer);
         assert(buffstr != NULL);
         if (strcmp(strsep(&buffstr, " "), "PING") == 0){
             char response[128];
