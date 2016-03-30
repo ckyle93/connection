@@ -22,9 +22,7 @@ void error(const char *msg) {
 void send_nickname(const char *nick, int sock) {
     char buffer[512];
     bzero(buffer,512);
-    strcpy(buffer, "NICK ");
-    strcat(buffer, nick);
-    strcat(buffer, "\r\n");
+    snprintf(buffer, sizeof buffer, "NICK %s\r\n", nick);
     printf("%s", buffer);
     int n = write(sock,buffer,strlen(buffer));
     if (n < 0) 
@@ -34,17 +32,15 @@ void send_nickname(const char *nick, int sock) {
 void send_username(const char *user_name, const char *real_name, int sock) {
     char buffer[512];
     bzero(buffer,512);
-    strcpy(buffer, "USER ");
-    strcat(buffer, user_name);
-    strcat(buffer, " 0 * :");
-    strcat(buffer, real_name);
-    strcat(buffer, "\r\n");
+    snprintf(buffer, sizeof buffer,
+        "USER %s 0 * :%s\r\n", user_name, real_name);
     printf("%s", buffer);
     int n = write(sock,buffer,strlen(buffer));
     if (n < 0) 
          error("ERROR writing to socket");
 }
 
+// This loop doesn't end unless an error occurs
 void listen_to_server(int sock) {
     char buffer[512];
     while(1) {
@@ -54,15 +50,14 @@ void listen_to_server(int sock) {
              error("ERROR reading from socket");
         char *buffstr = strdup(buffer);
         assert(buffstr != NULL);
+        printf("%s",buffer);
         if (strcmp(strsep(&buffstr, " "), "PING") == 0){
             char response[128];
-            strcpy(response, "PONG ");
-            strcat(response, strsep(&buffstr, " "));
-            strcat(response, "\r\n");
+            snprintf(response, sizeof response,
+                "PONG %s\r\n", strsep(&buffstr, " "));
             n = write(sock, response, strlen(response)); 
             printf("%s", response);
         }
-        printf("%s",buffer);
     }
 }
 
