@@ -14,8 +14,7 @@
 #include <netdb.h>
 #include <assert.h>
 
-void error(const char *msg)
-{
+void error(const char *msg) {
     perror(msg);
     exit(0);
 }
@@ -81,8 +80,7 @@ int main(int argc, char *argv[]) {
 
     // Get address of the form www.example.com:1234
     fgets(buff, 255, address_file);
-    char *str;
-    strcpy(str, buff);
+    char *str = strdup(buff);
     char *web_address = strsep(&str, ":");
     size_t port_number = atoi(strsep(&str, ":"));
 
@@ -123,7 +121,7 @@ int main(int argc, char *argv[]) {
          (char *)&serv_addr.sin_addr.s_addr,
          server->h_length);
     serv_addr.sin_port = htons(portno);
-    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
     send_nickname(nickname, sockfd);
